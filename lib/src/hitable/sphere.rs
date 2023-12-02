@@ -7,7 +7,7 @@ pub struct Sphere {
 }
 
 impl Sphere {
-    pub fn hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<Hit> {
+    pub fn hit(&self, ray: &Ray, range: Interval) -> Option<Hit> {
         let oc = ray.origin - self.center;
         let a = ray.dir.dot(&ray.dir);
         let b = 2. * oc.dot(&ray.dir);
@@ -21,9 +21,9 @@ impl Sphere {
         let sqrtd = discriminant.sqrt();
 
         let root = (-b - sqrtd) / (2. * a);
-        if (root < t_min) || (t_max < root) {
+        if !range.surrounds(root) {
             let root = (-b + sqrtd) / (2. * a);
-            if (root < t_min) || (t_max < root) {
+            if !range.surrounds(root) {
                 return None;
             }
         }

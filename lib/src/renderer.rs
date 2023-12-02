@@ -1,28 +1,11 @@
-use crate::{color::*, hitable::HittableList, ray::Ray, Vec3};
+use crate::{camera::Camera, color::*, hitable::HittableList, interval::Interval, ray::Ray, Vec3};
 
-pub fn render(w: usize, h: usize, world: &HittableList) -> Vec<(u8, u8, u8)> {
-    let aspect_ratio = w as f64 / h as f64;
-    let viewport_height = 2.0;
-    let viewport_width = aspect_ratio * viewport_height;
-
-    let focal_length = 1.0;
-    let camera_origin = Vec3::zeros();
-
-    let viewport_u = Vec3::new(viewport_width, 0.0, 0.0);
-    let viewport_v = Vec3::new(0.0, viewport_height, 0.0);
-
-    let pixel_du = viewport_u / (w as f64);
-    let pixel_dv = viewport_v / (h as f64);
-
-    let viewport_upper_left_corner =
-        camera_origin - viewport_u / 2.0 - viewport_v / 2.0 - Vec3::new(0.0, 0.0, focal_length);
-    let pixel_00 = viewport_upper_left_corner + pixel_du / 2.0 + pixel_dv / 2.0;
-
-    let per_pixel = |x: usize, y: usize| {
-        let pixel = pixel_00 + pixel_du * (x as f64) + pixel_dv * (y as f64);
+pub fn render(camera: &Camera, world: &HittableList) -> Vec<(u8, u8, u8)> {
+    let per_pixel = |x: u32, y: u32| {
+        let pixel = camera.pixel_center(x, y);
         let ray = Ray {
-            origin: camera_origin,
-            dir: pixel - camera_origin,
+            origin: camera.origin,
+            dir: pixel - camera.origin,
         };
 
         let color = ray_color(&ray, world);
@@ -33,15 +16,15 @@ pub fn render(w: usize, h: usize, world: &HittableList) -> Vec<(u8, u8, u8)> {
         )
     };
 
-    (0..h)
-        .map(|y| (0..w).map(move |x| per_pixel(x, y)))
+    (0..camera.height)
+        .map(|y| (0..camera.width).map(move |x| per_pixel(x, y)))
         .rev()
         .flatten()
         .collect()
 }
 
 pub fn ray_color(ray: &Ray, world: &HittableList) -> Vec3 {
-    if let Some(hit) = world.hit(ray, 0.0, std::f64::MAX) {
+    if let Some(hit) = world.hit(ray, Interval::CAMERA) {
         return 0.5 * (hit.normal + Vec3::new(1., 1., 1.));
     }
 

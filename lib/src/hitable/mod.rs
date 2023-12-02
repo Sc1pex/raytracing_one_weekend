@@ -1,4 +1,4 @@
-use crate::{ray::Ray, Vec3};
+use crate::{interval::Interval, ray::Ray, Vec3};
 use serde::{Deserialize, Serialize};
 
 mod sphere;
@@ -11,9 +11,9 @@ pub enum Hittable {
 }
 
 impl Hittable {
-    pub fn hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<Hit> {
+    pub fn hit(&self, ray: &Ray, range: Interval) -> Option<Hit> {
         match self {
-            Hittable::Sphere(s) => s.hit(ray, t_min, t_max),
+            Hittable::Sphere(s) => s.hit(ray, range),
         }
     }
 }
@@ -28,18 +28,17 @@ impl HittableList {
         self.list.push(hitable);
     }
 
-    pub fn hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<Hit> {
-        let mut closest_so_far = t_max;
-        let mut hit = None;
+    pub fn hit(&self, ray: &Ray, mut range: Interval) -> Option<Hit> {
+        let mut best_hit = None;
 
-        for h in &self.list {
-            if let Some(h) = h.hit(ray, t_min, closest_so_far) {
-                closest_so_far = h.t;
-                hit = Some(h);
+        for obj in &self.list {
+            if let Some(hit) = obj.hit(ray, range) {
+                range.end = hit.t;
+                best_hit = Some(hit);
             }
         }
 
-        hit
+        best_hit
     }
 }
 

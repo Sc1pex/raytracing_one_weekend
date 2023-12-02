@@ -1,8 +1,10 @@
 use eframe::egui;
 use state::State;
 
+mod camera;
 mod color;
 mod hitable;
+mod interval;
 mod ray;
 mod renderer;
 mod state;

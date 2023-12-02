@@ -1,14 +1,15 @@
-use crate::{hitable::*, renderer::render, Vec3};
+use crate::{camera::Camera, hitable::*, renderer::render, Vec3};
 use eframe::egui;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Default)]
 #[serde(default)]
 pub struct State {
+    world: HittableList,
+    camera: Camera,
+
     #[serde(skip)]
     texture_handle: Option<egui::TextureHandle>,
-
-    world: HittableList,
 }
 
 impl State {
@@ -34,13 +35,15 @@ impl State {
 
     pub fn update(&mut self, ctx: &egui::Context) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            let size = ui.available_size();
-            let pixels = render(size.x as usize, size.y as usize, &self.world)
+            let size = ui.min_rect();
+            let w = size.width() as usize;
+            let h = size.height() as usize;
+            self.camera.resize(w as u32, h as u32);
+            let pixels = render(&self.camera, &self.world)
                 .into_iter()
                 .flat_map(|(r, g, b)| vec![r, g, b])
                 .collect::<Vec<u8>>();
-            let color_image =
-                egui::ColorImage::from_rgb([size.x as usize, size.y as usize], &pixels);
+            let color_image = egui::ColorImage::from_rgb([w, h], &pixels);
 
             match &mut self.texture_handle {
                 Some(handle) => handle.set(color_image, Default::default()),
