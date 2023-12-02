@@ -1,0 +1,12 @@
+[package]
+name = "lib"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["rlib", "dylib"]
+
+[dependencies]
+eframe = { version = "0.23.0", features = ["wayland", "persistence"] }
+nalgebra-glm = { version = "0.18.0", features = ["serde-serialize"] }
+serde = { version = "1.0.193", features = ["derive"] }

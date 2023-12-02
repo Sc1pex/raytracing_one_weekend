@@ -1,0 +1,13 @@
+[workspace]
+resolver = "2"
+members = ["lib"]
+
+[package]
+name = "one-weekend-gui"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+eframe = { version = "0.23.0", features = ["wayland", "persistence"] }
+hot-lib-reloader = "0.6.5"
+lib = { path = "lib" }
